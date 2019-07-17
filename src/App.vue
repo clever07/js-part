@@ -30,11 +30,45 @@
           </tbody>
         </table>
       </div>
+
+      <div class="col-sm-12 col-md-6">
+        <table class="table table-hover">
+          <thead class="thead-default">
+            <tr>
+              <th>Group</th>
+              <th>Price</th>
+              <th>Add to basket</th>
+            </tr>
+          </thead>
+          <tbody v-for="(el, index) in dataGoods" :key="index">
+            <tr>
+              <td>
+                <strong>{{ showGoodsAndNames(index).groupName }}</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>{{ showGoodsAndNames(index).goodsTitle }} ({{ showGoodsAndNames(index).quantity }})</td>
+              <td>{{ showGoodsAndNames(index).price }}</td>
+              <td>
+                <button
+                  class="btn btn-sm btn-outline-success"
+                  type="button"
+                  @click="addToBasket(item, option)"
+                >+</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
     <div>
       <button type="button" class="btn btn-success" @click="getPosts">Get posts</button>
       <button type="button" class="btn btn-success" @click="getGoods">Get goods</button>
-       <button type="button" class="btn btn-success" @click="showGoodsAndNames(0)">Show goods by data.json index</button>
+      <button
+        type="button"
+        class="btn btn-success"
+        @click="showGoodsAndNames(0)"
+      >Show goods by data.json index</button>
     </div>
     <div v-if="blogs.length > 0">
       <div v-for="blog in blogs" :key="blog">
@@ -50,12 +84,13 @@
     </div>
     <div v-else>No goods</div>
 
-    
-      <div >
-        <h2>{{ shop }}</h2>
-        <p v-for="(el, index) in dataGoods" :key="index">{{ showGoodsAndNames(index) }}</p>
-        <!--<h2>{{ goodsName }}</h2>-->
+    <div>
+      <h2>{{ shop }}</h2>
+      <div>
+        <p v-for="(it, index) in dataGoods" :key="index">{{showGoodsAndNames(index)}}</p>
       </div>
+      <!--<h2>{{ goodsName }}</h2>-->
+    </div>
   </div>
 </template>
 
@@ -63,7 +98,7 @@
 import axios from "axios";
 import posts from "./posts.json";
 import data from "./data.json";
-import { names } from "./store/names"
+import { names } from "./store/names";
 
 export default {
   data() {
@@ -78,6 +113,10 @@ export default {
     getNames() {
       return this.$store.getters.getNames;
     }
+  },
+  created() {
+    this.getGoods();
+    this.showGoodsAndNames();
   },
   methods: {
     getPosts() {
@@ -98,22 +137,16 @@ export default {
     showGoodsAndNames(index) {
       let groupId = this.dataGoods[index].G;
       let goodsId = this.dataGoods[index].T;
-      
-      const result  = {
-          quantity: this.dataGoods[index].P,
-          price: this.dataGoods[index].C,
-          groupId: this.dataGoods[index].G,
-          groupName: this.goodsName[groupId].G,
-          goodsId: this.dataGoods[index].T,
-          //goodsTitle: this.goodsName[groupId].B[goodsId]
-          goodsTitle: this.goodsName[groupId].B[goodsId].N
-          
-         
-         
-         // goodsGroupName: this.goodsName[index+1].G,
-         // goodsDetails: this.goodsName[index+1].B
-      }
-     return this.shop = result
+      const result = {
+        quantity: this.dataGoods[index].P,
+        price: this.dataGoods[index].C,
+        groupId: this.dataGoods[index].G,
+        groupName: this.goodsName[groupId].G,
+        goodsId: this.dataGoods[index].T,
+        goodsTitle: this.goodsName[groupId].B[goodsId].N
+      };
+
+      return (this.shop = result);
     }
   }
 };
