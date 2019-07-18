@@ -69,30 +69,6 @@
         </div>
       </div>
     </div>
-
-    <div>
-      <button type="button" class="btn btn-success" @click="getGoods">Get goods</button>
-      <button
-        type="button"
-        class="btn btn-success"
-        @click="showGoodsAndNames(0)"
-      >Show goods by data.json index</button>
-    </div>
-
-    <div v-if="dataGoods.length > 0">
-      <div v-for="item in dataGoods" :key="item">
-        <h2>{{ item.C }}</h2>
-      </div>
-    </div>
-    <div v-else>No goods</div>
-
-    <div>
-      <h2>{{ getShop }}</h2>
-      <div>
-        <!--<p v-for="(it, index) in dataGoods" :key="index">{{showGoodsAndNames(index)}}</p>-->
-      </div>
-      <!--<h2>{{ goodsName }}</h2>-->
-    </div>
   </div>
 </template>
 
@@ -128,15 +104,22 @@ export default {
     }
   },
   created() {
+    //get data from data.json
     this.getGoods();
+
+    //combine data.json and name.js
     this.addGoodsToShop();
+
+    //push goods to store.js into shop array using vuex
     this.pushToShop();
   },
   methods: {
+    //fetching all objects from data.Value.Goods chain
     getGoods() {
       this.dataGoods = data.Value.Goods;
     },
 
+    //Combine data.json and names.js and find goods by index
     showGoodsAndNames(index) {
       let groupId = this.dataGoods[index].G;
       let goodsId = this.dataGoods[index].T;
@@ -149,30 +132,23 @@ export default {
         goodsTitle: this.goodsName[groupId].B[goodsId].N
       };
 
-      //return (this.shop = result);
       return this.shop.push(result);
     },
 
+    //Find all goods from data.json by index
     addGoodsToShop() {
-      this.showGoodsAndNames(0);
-      this.showGoodsAndNames(1);
-      this.showGoodsAndNames(2);
-      this.showGoodsAndNames(3);
-      this.showGoodsAndNames(4);
-      this.showGoodsAndNames(5);
-      this.showGoodsAndNames(6);
-      this.showGoodsAndNames(7);
-      this.showGoodsAndNames(8);
-      this.showGoodsAndNames(9);
-      this.showGoodsAndNames(10);
-      this.showGoodsAndNames(11);
+      for (var item in this.dataGoods) {
+        this.showGoodsAndNames(item);
+      }
     },
+    //Push founded goods into shop array, located in store.js using vuex
     pushToShop() {
       //this.$store.commit('addGoodsToShop', this.shop)
       store.dispatch("setShop", this.shop);
     },
 
     //Basket
+    //Add goods to basket
     addToBasket(el) {
       this.basket.push({
         goodsTitle: el.goodsTitle,
@@ -182,9 +158,11 @@ export default {
         maxQuantity: el.quantity
       });
     },
+    //Remove goods from basket
     removeFromBasket(el) {
       this.basket.splice(this.basket.indexOf(el), 1);
     },
+    //Decrease quantity of goods
     decreaseQuantity(el) {
       el.quantity--;
 
@@ -192,6 +170,7 @@ export default {
         this.removeFromBasket(el);
       }
     },
+    //Increase quantity of goods
     increaseQuantity(el) {
       if (el.quantity < el.maxQuantity) {
         el.quantity++;
@@ -202,6 +181,5 @@ export default {
   }
 };
 </script>
-
 <style>
 </style>
