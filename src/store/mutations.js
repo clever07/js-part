@@ -1,0 +1,1 @@
+export const addGoodsToShop = (state, shop) => state.shop = shop;

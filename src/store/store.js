@@ -3,15 +3,18 @@ import Vuex, { Store } from "vuex";
 
 import { names } from './names'
 
+import * as actions from './actions'
+import * as getters from './getters'
+import * as mutations from './mutations'
+
 Vue.use(Vuex);
 
 export const store = new Vuex.Store({
   state: {
-    names
+    names,
+    shop: []
   },
-  getters: {
-    //getNames: state => state.names,
-    getNames: state => state.names,
-    numberOfOrders: state => state.orders.length
-  }
+  getters,
+  mutations,
+  actions
 });

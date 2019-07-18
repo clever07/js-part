@@ -2,67 +2,75 @@
   <div id="app">
     <div class="row">
       <div class="col-sm-12 col-md-6">
-        <table class="table table-hover">
+        <table class="table table-hover" v-if="shop.length > 0">
           <thead class="thead-default">
             <tr>
-              <th>Group</th>
-              <th>Price</th>
-              <th>Add to basket</th>
+              <th>Категория</th>
+              <th>Цена</th>
+              <th></th>
             </tr>
           </thead>
-          <tbody v-for="(item, index) in getNames" :key="index">
+          <tbody v-for="(el, index) in shop" :key="index">
             <tr>
               <td>
-                <strong>{{ item.G }}</strong>
+                <strong>{{ el.groupName }}</strong>
               </td>
             </tr>
-            <tr v-for="option in item.B" :key="option">
-              <td>{{ option.N }}"</td>
-              <td>${{ option.price }}</td>
+            <tr>
+              <td>{{ el.goodsTitle }} ({{ el.quantity }})</td>
+              <td>{{ el.price | currency }} руб</td>
               <td>
                 <button
                   class="btn btn-sm btn-outline-success"
                   type="button"
-                  @click="addToBasket(item, option)"
+                  @click="addToBasket(el)"
                 >+</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-
+      <!--Shoping basket-->
       <div class="col-sm-12 col-md-6">
-        <table class="table table-hover">
-          <thead class="thead-default">
-            <tr>
-              <th>Group</th>
-              <th>Price</th>
-              <th>Add to basket</th>
-            </tr>
-          </thead>
-          <tbody v-for="(el, index) in dataGoods" :key="index">
-            <tr>
-              <td>
-                <strong>{{ showGoodsAndNames(index).groupName }}</strong>
-              </td>
-            </tr>
-            <tr>
-              <td>{{ showGoodsAndNames(index).goodsTitle }} ({{ showGoodsAndNames(index).quantity }})</td>
-              <td>{{ showGoodsAndNames(index).price }}</td>
-              <td>
-                <button
-                  class="btn btn-sm btn-outline-success"
-                  type="button"
-                  @click="addToBasket(item, option)"
-                >+</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div v-if="basket.length > 0">
+          <table class="table">
+            <thead class="thead-default">
+              <tr>
+                <th>Наименование товара и описание</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody v-for="item in basket" :key="item">
+              <tr>
+                <td>{{ item.groupName }}. {{ item.goodsTitle }}</td>
+                <td>
+                  <button class="btn btn-sm" type="button" @click="decreaseQuantity(item)">-</button>
+                  <span>{{ item.quantity }}</span>
+                  <button class="btn btn-sm" type="button" @click="increaseQuantity(item)">+</button>
+                </td>
+                <td>{{ item.price * item.quantity | currency }} руб</td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-danger"
+                    type="button"
+                    @click="removeFromBasket(item)"
+                  >Удалить</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p>Общая стоимость: {{ total | currency}} руб</p>
+          <button class="btn btn-success btn-block">Place Order</button>
+        </div>
+        <div v-else>
+          <p>{{ basketText }}</p>
+        </div>
       </div>
     </div>
+
     <div>
-      <button type="button" class="btn btn-success" @click="getPosts">Get posts</button>
       <button type="button" class="btn btn-success" @click="getGoods">Get goods</button>
       <button
         type="button"
@@ -70,12 +78,6 @@
         @click="showGoodsAndNames(0)"
       >Show goods by data.json index</button>
     </div>
-    <div v-if="blogs.length > 0">
-      <div v-for="blog in blogs" :key="blog">
-        <h2>{{ blog.title }}</h2>
-      </div>
-    </div>
-    <div v-else>No posts</div>
 
     <div v-if="dataGoods.length > 0">
       <div v-for="item in dataGoods" :key="item">
@@ -85,9 +87,9 @@
     <div v-else>No goods</div>
 
     <div>
-      <h2>{{ shop }}</h2>
+      <h2>{{ getShop }}</h2>
       <div>
-        <p v-for="(it, index) in dataGoods" :key="index">{{showGoodsAndNames(index)}}</p>
+        <!--<p v-for="(it, index) in dataGoods" :key="index">{{showGoodsAndNames(index)}}</p>-->
       </div>
       <!--<h2>{{ goodsName }}</h2>-->
     </div>
@@ -99,37 +101,38 @@ import axios from "axios";
 import posts from "./posts.json";
 import data from "./data.json";
 import { names } from "./store/names";
+import { store } from "./store/store.js";
+
+import { mapGetters } from "vuex";
 
 export default {
   data() {
     return {
-      blogs: [],
       dataGoods: [],
       shop: [],
-      goodsName: names
+      goodsName: names,
+      basket: [],
+      basketText: "Ваша корзина пуста!",
+      currencyRUB: 63
     };
   },
   computed: {
-    getNames() {
-      return this.$store.getters.getNames;
+    ...mapGetters(["getNames", "getShop"]),
+    total() {
+      var totalCoast = 0;
+      for (var items in this.basket) {
+        var individualItem = this.basket[items];
+        totalCoast += individualItem.quantity * individualItem.price;
+      }
+      return totalCoast;
     }
   },
   created() {
     this.getGoods();
-    this.showGoodsAndNames();
+    this.addGoodsToShop();
+    this.pushToShop();
   },
   methods: {
-    getPosts() {
-      this.blogs = [{ title: "Hello" }];
-      /*axios.get('./posts.json')
-          .then(response => (this.blogs = response.data))*/
-      /*fetch('./posts.json')
-            .then(r => r.json())
-            .then(response => {
-              this.blogs = response
-            })*/
-      //this.blogs = posts
-    },
     getGoods() {
       this.dataGoods = data.Value.Goods;
     },
@@ -139,14 +142,62 @@ export default {
       let goodsId = this.dataGoods[index].T;
       const result = {
         quantity: this.dataGoods[index].P,
-        price: this.dataGoods[index].C,
+        price: this.dataGoods[index].C * this.currencyRUB,
         groupId: this.dataGoods[index].G,
         groupName: this.goodsName[groupId].G,
         goodsId: this.dataGoods[index].T,
         goodsTitle: this.goodsName[groupId].B[goodsId].N
       };
 
-      return (this.shop = result);
+      //return (this.shop = result);
+      return this.shop.push(result);
+    },
+
+    addGoodsToShop() {
+      this.showGoodsAndNames(0);
+      this.showGoodsAndNames(1);
+      this.showGoodsAndNames(2);
+      this.showGoodsAndNames(3);
+      this.showGoodsAndNames(4);
+      this.showGoodsAndNames(5);
+      this.showGoodsAndNames(6);
+      this.showGoodsAndNames(7);
+      this.showGoodsAndNames(8);
+      this.showGoodsAndNames(9);
+      this.showGoodsAndNames(10);
+      this.showGoodsAndNames(11);
+    },
+    pushToShop() {
+      //this.$store.commit('addGoodsToShop', this.shop)
+      store.dispatch("setShop", this.shop);
+    },
+
+    //Basket
+    addToBasket(el) {
+      this.basket.push({
+        goodsTitle: el.goodsTitle,
+        price: el.price,
+        groupName: el.groupName,
+        quantity: 1,
+        maxQuantity: el.quantity
+      });
+    },
+    removeFromBasket(el) {
+      this.basket.splice(this.basket.indexOf(el), 1);
+    },
+    decreaseQuantity(el) {
+      el.quantity--;
+
+      if (el.quantity === 0) {
+        this.removeFromBasket(el);
+      }
+    },
+    increaseQuantity(el) {
+      if (el.quantity < el.maxQuantity) {
+        el.quantity++;
+      } else {
+        alert("Количество ограничено");
+      }
     }
   }
 };
