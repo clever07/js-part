@@ -62,10 +62,10 @@
             </tbody>
           </table>
           <p>Общая стоимость: {{ total | currency}} руб</p>
-          <button class="btn btn-success btn-block">Place Order</button>
+          <button class="btn btn-success btn-block" @click="addNewOrder">Оформить заказ</button>
         </div>
         <div v-else>
-          <p>{{ basketText }}</p>
+          <p>{{ basketText }} {{ numberOfOrders }}</p>
         </div>
       </div>
     </div>
@@ -74,7 +74,6 @@
 
 <script>
 import axios from "axios";
-import posts from "./posts.json";
 import data from "./data.json";
 import { names } from "./store/names";
 import { store } from "./store/store.js";
@@ -93,7 +92,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["getNames", "getShop"]),
+    ...mapGetters(["getNames", "getShop", "getOrders", "numberOfOrders"]),
     total() {
       var totalCoast = 0;
       for (var items in this.basket) {
@@ -177,6 +176,12 @@ export default {
       } else {
         alert("Количество ограничено");
       }
+    },
+    //Add a new order
+    addNewOrder() {
+      store.dispatch('setOrders', this.basket)
+      this.basket = []
+      this.basketText = 'Спасибо, Ваш заказ принят!'
     }
   }
 };

@@ -12,7 +12,8 @@ Vue.use(Vuex);
 export const store = new Vuex.Store({
   state: {
     names,
-    shop: []
+    shop: [],
+    orders: []
   },
   getters,
   mutations,
