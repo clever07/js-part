@@ -65,7 +65,7 @@
           <button class="btn btn-success btn-block" @click="addNewOrder">Оформить заказ</button>
         </div>
         <div v-else>
-          <p>{{ basketText }} {{ numberOfOrders }}</p>
+          <p>{{ basketText }}</p>
         </div>
       </div>
     </div>
